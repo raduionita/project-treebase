@@ -5,32 +5,138 @@ tree structured database
 
 database with a tree base structure
 
-### usage
+### architecture
 
-`GET /` => returns all resources/collections at root
+key-value store
 
-`GET /accounts` => collection (as a field under root)
+add KEY (`/accounts`) with VALUE (`{}`)
 
-`GET /accounts/:aid` // resource
+`/`   
+.L `/transactions`   
+.L `/accounts`     
+....L `/accounts/1`    
+.......L `/accounts/1/users`    
+..........L `/accounts/1/users/1`   
+..........L `/accounts/1/users/2`   
 
-`GET /accounts/:aid/users` => collection
+`SET`+`/`+`value`   
+`SET`+`/transactions`+`value`   
+`SET`+`/accounts`+`value`   
+`SET`+`/accounts/1`+`value`   
+`SET`+`/accounts/1/users`+`value`   
+`SET`+`/accounts/1/users/1`+`value`   
+`SET`+`/accounts/1/users/2`+`value`   
 
-`GET /accounts/:aid/users/:uid` => resource
 
-`GET /accounts/:aid/users/:uid/field` => field(collection or resource)
+### api
 
-`SET` => update
+store resources(entities) inside collections (of entities)
 
-`MOD` => update
+#### select
 
-`PUT` => create
+`GET`+`/` (root) returns all resources/collections at root
+```json
+"ok",{
+  "accounts":"R#/accounts",
+  "products":"R#/products",
+  "pi": 3.14
+}
+```
 
-`ADD` => create
+`GET`+`/accounts` => collection (as a field under root)
+```json
+"ok",[
+  "uuid",
+  "uuid"
+]
+```
 
-`DEL` => delete
+`GET`+`/accounts/:aid` => resource/value
+```json
+"ok",{
+  "id":"uuid",
+  "users": "R#/accounts/:aid/users",
+  "created": 31241231424
+}
+```
 
-`IDX` => create index
+`GET`+`/accounts/:aid/users` => collection
+```json
+"ok",[
+  "uuid",
+  "uuid"
+]
+```
 
+`GET`+`/accounts/:aid/users/:uid` => resource
+```json
+"ok",{
+  "email":"string"
+}
+```
+
+`GET`+`/accounts/:aid/users/:uid/email` => field(collection or resource)
+```json
+"ok","string"
+```
+
+#### update
+
+`SET`+`/accounts/:aid`+`{"field":"value"}` => update(patch) account `:aid`
+```json
+"ok","ok"
+```
+
+`MOD`+`/accounts/:aid/field`+`"value"` => update account's `:aid` `field` with `"value"`
+```json
+"ok"
+```
+
+#### insert/create
+
+`PUT`+`/accounts`+`{"field":"value", "users":?}` => create account
+```json
+"ok",{
+  "field":"value"
+}
+```
+
+`ADD`+`/accounts/:aid/users`+`{"email":"string"}` => create user
+```json
+"ok",{
+  "email":"string"
+}
+```
+
+#### fetch & delete
+
+`POP`+`/accounts/:aid/users/:uid` => find resource, remove it and return it
+```json
+"ok",{
+  "email":"string"
+}
+```
+
+#### delete
+
+`DEL`+`/accounts/:aid` => delete account
+```json
+"ok"
+```
+
+#### index
+
+`IDX`+`?` => create index
+```json
+"ok"
+```
+
+#### count
+
+`CNT`+`/accounts` => count accounts
+```json
+"ok",10
+```
 
 ### todo
 
